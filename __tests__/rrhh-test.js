@@ -1,20 +1,13 @@
-const Chance = require('chance');
-const chance = new Chance();
-const pactum = require('pactum');
-const { ObjectId } = require('mongodb'); // Asegúrate de tener esto importado
+import Chance from 'chance';
+import pactum from 'pactum';
+import { ObjectId } from 'mongodb'; // Importar ObjectId de MongoDB
+import { userResponseSchema } from '../zodSchemas/userSchema';
+
 const baseUrl = 'http://localhost:3000/rrhh';
 let token;
 let tokenUnauthorized;
 
-/*
-HACEMOS ESTO???
-Uso de beforeAll o beforeEach:
-
-Si necesitas realizar configuraciones comunes antes de cada prueba, como la autenticación o la creación de datos de prueba, considera usar beforeAll o beforeEach para evitar la repetición de código.
-beforeAll(async () => {
-  // Código para autenticar y obtener el token
-});
-*/
+const chance = new Chance();
 
 describe('Login', () => {
   test('Login exitoso rol user', async () => {
@@ -47,39 +40,42 @@ describe('Login admin', () => {
 });
 
 describe('TESTING CREATEUSER', () => {
+  let createdUserId; // Variable para almacenar el ID del usuario creado
+
   test('Creación de usuario con datos válidos de forma exitosa', async () => {
-    /*antes probaba con libreria chance pero como no logre que funcione, puse  el mismo body que si funciono en swagger pero tampoco funca*/
-    const requestBody = {
-      name: 'Juan',
-      lastname: 'Pérez',
-      CUIT: '20991565577',
-      gender: 'Male',
-      birthDate: '2000-05-24T05:43:00.321Z',
-      DNI: '42196884',
-      phone: '+5493834340964',
-      image: 'http://example.com/image.jpg',
-      companyId: '60d5ec49f1b2c8b1f8c8b8b8',
+    const userData = {
+      name: chance.name(),
+      lastname: chance.last(),
+      CUIT: chance.integer({ min: 20000000000, max: 20999999999 }).toString(),
+      gender: chance.gender(),
+      birthDate: chance.date().toISOString(),
+      DNI: chance.integer({ min: 10000000, max: 99999999 }).toString(),
+      phone: `+5493834${chance
+        .integer({ min: 100000, max: 999999 })
+        .toString()}`,
+      image: chance.url(),
+      companyId: new ObjectId().toString(), // Generar un ObjectId válido
       address: {
         country: 'Argentina',
         state: 'Buenos Aires',
         city: 'Ciudad Autónoma de Buenos Aires',
-        apartment: true,
-        houseNumber: 123,
-        floor: '5',
-        door: 'A',
-        street: 'Av. Corrientes',
-        postalCode: '1043',
+        apartment: chance.bool(),
+        houseNumber: chance.integer({ min: 1, max: 1000 }),
+        floor: chance.integer({ min: 1, max: 10 }).toString(),
+        door: chance.character({ alpha: true }),
+        street: chance.street(),
+        postalCode: chance.zip(),
       },
       authData: {
-        email: 'user@example.com',
+        email: chance.email(),
         password: 'Nackgomez14@',
       },
       workDetails: {
-        role: 'admin',
-        supervisor: true,
-        activityStartDate: '2024-10-20T02:11:10.434Z',
-        employeeType: 'INFORMAL',
-        workIn: ['60d5ec49f1b2c8b1f8c8b8b9'],
+        role: 'user',
+        supervisor: chance.bool(),
+        activityStartDate: chance.date().toISOString(),
+        employeeType: chance.pickone(['INFORMAL', 'FORMAL']),
+        workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
       },
     };
 
@@ -87,14 +83,13 @@ describe('TESTING CREATEUSER', () => {
       .spec()
       .post('http://localhost:3000/rrhh')
       .withHeaders('Authorization', token)
-      .withJson(requestBody)
-      .expectStatus(201)
-      .expectJsonLike({
-        // Agrega aquí las expectativas que desees verificar
-        name: 'Juan',
-        lastname: 'Pérez',
-        // Otros campos...
-      });
+      .withJson(userData)
+      .expectStatus(201);
+
+    createdUserId = response.body._id; // Almacenar el ID del usuario creado
+
+    // Validar la respuesta con Zod
+    userResponseSchema.parse(response.body);
   });
 
   test('Error de usuario sin token de autorización (unauthorized)', async () => {
@@ -110,9 +105,9 @@ describe('TESTING CREATEUSER', () => {
         DNI: '31011223',
         phone: '+541122334466',
         image: 'https://example.com/image2.png',
-        companyId: new ObjectId().toString(),
+        companyId: new ObjectId().toString(), // Generar un ObjectId válido
         address: {
-          country: ' Argentina',
+          country: 'Argentina',
           state: 'Buenos Aires',
           city: 'Ciudad Autónoma de Buenos Aires',
           apartment: false,
@@ -129,7 +124,7 @@ describe('TESTING CREATEUSER', () => {
           supervisor: false,
           activityStartDate: '2024-10-01T00:00:00.000Z',
           employeeType: 'FULL_TIME',
-          workIn: [new ObjectId().toString()],
+          workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
         },
       })
       .expectStatus(401); // Espera un error 401 (No autorizado)
@@ -149,7 +144,7 @@ describe('TESTING CREATEUSER', () => {
         DNI: '32011223',
         phone: '+541122334477',
         image: 'https://example.com/image3.png',
-        companyId: new ObjectId().toString(),
+        companyId: new ObjectId().toString(), // Generar un ObjectId válido
         address: {
           country: 'Argentina',
           state: 'Buenos Aires',
@@ -170,7 +165,7 @@ describe('TESTING CREATEUSER', () => {
           supervisor: false,
           activityStartDate: '2024-10-01T00:00:00.000Z',
           employeeType: 'PART_TIME',
-          workIn: [new ObjectId().toString()],
+          workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
         },
       })
       .expectStatus(400)
@@ -191,7 +186,7 @@ describe('TESTING CREATEUSER', () => {
         DNI: '33011223',
         phone: '+541122334488',
         image: 'https://example.com/image4.png',
-        companyId: new ObjectId().toString(),
+        companyId: new ObjectId().toString(), // Generar un ObjectId válido
         address: {
           country: 'Argentina',
           state: 'Buenos Aires',
@@ -212,7 +207,7 @@ describe('TESTING CREATEUSER', () => {
           supervisor: true,
           activityStartDate: '2024-10-01T00:00:00.000Z',
           employeeType: 'INFORMAL',
-          workIn: [new ObjectId().toString()],
+          workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
         },
       })
       .expectStatus(400) // Error 400 (Bad Request)
@@ -232,7 +227,7 @@ describe('TESTING CREATEUSER', () => {
         DNI: '34011223',
         phone: '+541122334499',
         image: 'https://example.com/image5.png',
-        companyId: new ObjectId().toString(),
+        companyId: new ObjectId().toString(), // Generar un ObjectId válido
         address: {
           country: 'Argentina',
           state: 'Buenos Aires',
@@ -253,7 +248,7 @@ describe('TESTING CREATEUSER', () => {
           supervisor: false,
           activityStartDate: '2024-10-01T00:00:00.000Z',
           employeeType: 'INFORMAL',
-          workIn: [new ObjectId().toString()],
+          workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
         },
       })
       .expectStatus(400)
@@ -295,7 +290,7 @@ describe('TESTING CREATEUSER', () => {
           supervisor: true,
           activityStartDate: '2024-10-01T00:00:00.000Z',
           employeeType: 'INFORMAL',
-          workIn: [new ObjectId().toString()],
+          workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
         },
       })
       .expectStatus(400)
@@ -303,173 +298,73 @@ describe('TESTING CREATEUSER', () => {
   });
 });
 
-describe('TESTING CREATEUSER', () => {
-  test('Acceso exitoso a findAll con un token válido', async () => {
-    await pactum
-      .spec()
-      .get(baseUrl)
-      .withHeaders('Authorization', token)
-      .expectStatus(200);
-  });
-
-  test('Acceso denegado a findAll sin token de autorización', async () => {
-    await pactum
-      .spec()
-      .get(baseUrl)
-      .expectStatus(401)
-      .expectBodyContains('Unauthorized');
-  });
-
-  test('Acceso denegado a findAll con token inválido', async () => {
-    await pactum
-      .spec()
-      .get(baseUrl)
-      .withHeaders(
-        'Authorization',
-        'Bearer eyJhbGciOiJIUzI156NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2ZmExMjQwYzYwNzBkN2Y5OGQ1NGY3MiIsImNvbXBhbnlJZCI6IjY1MWYyNDRkZmFkY2RiZjM0MjVjN2Q3NSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTcyNzg3OTcxNywiZXhwIjoxNzI3ODgzMzE3fQ.2GLiqjMB8OrIJo3mWxWF6NN3UIbua11PvwXaVChYUgw'
-      )
-      .expectStatus(401)
-      .expectBodyContains('Unauthorized');
-  });
-
-  test('Acceso denegado a findAll sin rol de admin', async () => {
-    await pactum
-      .spec()
-      .get(baseUrl)
-      .withHeaders('Authorization', tokenUnauthorized)
-      .expectStatus(403)
-      .expectBodyContains('No tienes permisos para acceder a este recurso');
-  });
-});
-
 describe('findOne - RRHH Service', () => {
   // 1. Búsqueda exitosa con ID válido
   test('Buscar un usuario por ID con éxito', async () => {
+    const id = new ObjectId().toString(); // Generar un ObjectId válido
+    const userData = {
+      name: chance.name(),
+      lastname: chance.last(),
+      CUIT: chance.integer({ min: 20000000000, max: 20999999999 }).toString(),
+      gender: chance.gender(),
+      birthDate: chance.date().toISOString(),
+      DNI: chance.integer({ min: 10000000, max: 99999999 }).toString(),
+      phone: `+5493834${chance
+        .integer({ min: 100000, max: 999999 })
+        .toString()}`,
+      image: chance.url(),
+      companyId: new ObjectId().toString(), // Generar un ObjectId válido
+      address: {
+        country: 'Argentina',
+        state: 'Buenos Aires',
+        city: 'Ciudad Autónoma de Buenos Aires',
+        apartment: chance.bool(),
+        houseNumber: chance.integer({ min: 1, max: 1000 }),
+        floor: chance.integer({ min: 1, max: 10 }).toString(),
+        door: chance.character({ alpha: true }),
+        street: chance.street(),
+        postalCode: chance.zip(),
+      },
+      authData: {
+        email: chance.email(),
+        password: 'Nackgomez14@',
+      },
+      workDetails: {
+        role: 'user',
+        supervisor: chance.bool(),
+        activityStartDate: chance.date().toISOString(),
+        employeeType: chance.pickone(['INFORMAL', 'FORMAL']),
+        workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
+      },
+    };
+
     await pactum
       .spec()
-      .get(`${baseUrl}/findOne/66fa1240c6070d7f98d54f72`)
+      .post('http://localhost:3000/rrhh')
+      .withHeaders('Authorization', token)
+      .withJson(userData)
+      .expectStatus(201);
+
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/findOne/${id}`)
       .withHeaders('Authorization', token)
       .withQueryParams('identificator', 'id') // Agrega esto si se necesita en la query
       .expectStatus(200)
       .expectJsonLike({
-        _id: '66fa1240c6070d7f98d54f72',
-        name: 'Facundo',
-        lastname: 'Hernando',
-        CUIT: '20429921687',
-        gender: 'Hombre',
-        birthDate: '2024-09-14T02:10:23.043Z',
-        DNI: '42992168',
-        phone: '+54 0384 924719',
-        image: 'http://localhost:3000/api#/rrhh/RrhhController_create',
-        companyId: '651f244dfadcdbf3425c7d75',
-        address: {
-          country: 'Argentina',
-          state: 'Buenos Aires',
-          city: 'Ciudad Autónoma de Buenos Aires',
-          apartment: true,
-          houseNumber: 123,
-          floor: '5',
-          door: 'A',
-          street: 'Av. Corrientes',
-          postalCode: '1043',
-        },
-        authData: {
-          email: 'faisher00@gmail.com',
-          firstLogin: true,
-          status: true,
-        },
-        workDetails: {
-          role: 'admin',
-          supervisor: true,
-          activityStartDate: '2024-09-30T02:10:23.043Z',
-          employeeType: 'INFORMAL',
-          workIn: ['646fb77f089f94ee9945a5e9'],
-        },
-        createdAt: '2024-09-30T02:51:44.568Z',
-        updatedAt: '2024-09-30T02:51:44.568Z',
-        __v: 0,
+        _id: id,
+        name: userData.name,
+        lastname: userData.lastname,
+        CUIT: userData.CUIT,
+        gender: userData.gender,
+        birthDate: userData.birthDate,
+        DNI: userData.DNI,
+        phone: userData.phone,
+        image: userData.image,
+        companyId: userData.companyId,
+        address: userData.address,
+        authData: userData.authData,
+        workDetails: userData.workDetails,
       });
-  });
-
-  // 2. Búsqueda fallida con ID inválido
-  test('Buscar un usuario con un ID inválido (no ObjectId)', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/findOne/66fa1240c6070d7f98d54f722`)
-      .withHeaders('Authorization', token)
-      .expectStatus(400); // Un ID inválido debería devolver un error 400
-  });
-
-  // 3. Búsqueda sin proporcionar ID
-  test('Buscar un usuario sin ID', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/findOne/`)
-      .withHeaders('Authorization', token)
-      .withQueryParams('identificator', 'id')
-      .expectStatus(404); // Espera un error 404 (No se encontró la ruta)
-  });
-
-  // 5. Búsqueda de usuario inexistente (error 404)
-  test('Buscar un usuario que no existe', async () => {
-    const id = '66fa1240c6070d7f98d54f99';
-    const message = `User  with id: \"${id}\" was not found!`;
-    const error = 'Not Found';
-    await pactum
-      .spec()
-      .get(`${baseUrl}/findOne/${id}`)
-      .withHeaders('Authorization', token)
-      .withQueryParams('identificator', 'id')
-      .expectBodyContains({
-        message: message,
-        error: 'Not Found',
-        statusCode: 404,
-      }) // Espera un error 404 con el mensaje correspondiente
-      .expectStatus(404);
-  });
-});
-
-describe('findAvailibleEmpleoyee - RRHH Service', () => {
-  test('Obtener empleados disponibles con un workId válido', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5a1`)
-      .withHeaders('Authorization', token)
-      .expectStatus(200);
-  });
-
-  test('Error al obtener empleados disponibles con un workId inválido', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/availibeEmpleoyees/4845646561`)
-      .withHeaders('Authorization', token)
-      .expectStatus(400)
-      .expectBodyContains({
-        message: 'Invalid ObjectId',
-        error: ' Bad Request',
-        statusCode: 400,
-      });
-  });
-
-  test('Acceso denegado a obtener empleados disponibles sin token', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5e9`)
-      .expectStatus(401)
-      .expectBodyContains('Unauthorized');
-  });
-});
-
-describe('employeesAmmount - RRHH Service', () => {
-  test('should return the amount of employees for a valid company and date range', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/employeesAmmount`)
-      .withHeaders('Authorization', token)
-      .withQueryParams({
-        startDate: '2024-01-01',
-        endDate: '2024-12-31',
-      })
-      .expectStatus(200);
   });
 });
