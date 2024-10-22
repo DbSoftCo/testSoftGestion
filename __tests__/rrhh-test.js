@@ -43,41 +43,45 @@ describe('TESTING CREATEUSER', () => {
   let createdUserId; // Variable para almacenar el ID del usuario creado
 
   test('Creación de usuario con datos válidos de forma exitosa', async () => {
+    const cuit = chance.integer({ min: 20000000000, max: 20999999999 }).toString();
+        const dni = chance.integer({ min: 10000000, max: 99999999 }).toString();
+        const phone = `+5493834${chance.integer({ min: 100000, max: 999999 }).toString()}`;
+        const email = chance.email();
     const userData = {
-      name: chance.name(),
-      lastname: chance.last(),
-      CUIT: chance.integer({ min: 20000000000, max: 20999999999 }).toString(),
-      gender: chance.gender(),
-      birthDate: chance.date().toISOString(),
-      DNI: chance.integer({ min: 10000000, max: 99999999 }).toString(),
-      phone: `+5493834${chance
-        .integer({ min: 100000, max: 999999 })
-        .toString()}`,
-      image: chance.url(),
-      companyId: new ObjectId().toString(), // Generar un ObjectId válido
-      address: {
-        country: 'Argentina',
-        state: 'Buenos Aires',
-        city: 'Ciudad Autónoma de Buenos Aires',
-        apartment: chance.bool(),
-        houseNumber: chance.integer({ min: 1, max: 1000 }),
-        floor: chance.integer({ min: 1, max: 10 }).toString(),
-        door: chance.character({ alpha: true }),
-        street: chance.street(),
-        postalCode: chance.zip(),
-      },
-      authData: {
-        email: chance.email(),
-        password: 'Nackgomez14@',
-      },
-      workDetails: {
-        role: 'user',
-        supervisor: chance.bool(),
-        activityStartDate: chance.date().toISOString(),
-        employeeType: chance.pickone(['INFORMAL', 'FORMAL']),
-        workIn: [new ObjectId().toString()], // Generar un array con un ObjectId válido
-      },
-    };
+                    "name": "FAKE",
+                    "lastname": "TEST",
+                    "CUIT": cuit,
+                    "gender": "M",
+                    "birthDate": "2001-09-14T00:00:00.000Z",
+                    "DNI": dni,
+                    "phone": phone,
+                    "image": "https://example.com/image1.png",
+                    "companyId": "659c7626ecbb78591228bd01",
+                    "address": {
+                        "country": "Argentina",
+                        "state": "Buenos Aires",
+                        "city": "Ciudad Autónoma de Buenos Aires",
+                        "apartment": true,
+                        "houseNumber": 123,
+                        "floor": "3",
+                        "door": "B",
+                        "street": "Av. Córdoba",
+                        "postalCode": "1045"
+                    },
+                    "authData": {
+                        "email": email,
+                        "password": "Nackgomez14@"
+                    },
+                    "workDetails": {
+                        "role": "user",
+                        "supervisor": true,
+                        "activityStartDate": "2024-09-30T23:35:29.473Z",
+                        "employeeType": "INFORMAL",
+                        "workIn": [
+                            "646fb77f089f94ee9945a5a1"
+                        ]
+                    }
+                }
 
     const response = await pactum
       .spec()
@@ -301,7 +305,7 @@ describe('TESTING CREATEUSER', () => {
 describe('findOne - RRHH Service', () => {
   // 1. Búsqueda exitosa con ID válido
   test('Buscar un usuario por ID con éxito', async () => {
-    const id = new ObjectId().toString(); // Generar un ObjectId válido
+    const id = "6716f0ffbb1f2bca67c12cdf"; // Generar un ObjectId válido
     const userData = {
       name: chance.name(),
       lastname: chance.last(),
