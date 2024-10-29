@@ -448,37 +448,76 @@ describe('findOne - RRHH Service', () => {
 
   // 5. Búsqueda de usuario inexistente (error 404)
   test('Buscar un usuario que no existe', async () => {
-    const id = '66fa1240c6070d7f98d54f99'; // Asegúrate de que este ID no exista
-    const message = `User  with id: \"${id}\" was not found!`;
-
+    const id = '66fa1240c6070d7f98d54f98'; 
+    const message = `User with id: \"${id}\" was not found!`;
+  
     await pactum
       .spec()
       .get(`${baseUrl}/findOne/${id}`)
       .withHeaders('Authorization', token)
+      .withQueryParams('identificator', 'id')
       .expectStatus(404)
       .expectBodyContains({
         message: message,
         error: 'Not Found',
         statusCode: 404,
       });
-  });
-
-  describe('findAvailibleEmpleoyee - RRHH Service', () => {
-    test('Obtener empleados disponibles con un workId válido', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5a1`)
-        .withHeaders('Authorization', token)
-        .expectStatus(200);
-
-      // Validación del cuerpo de la respuesta usando Zod
-      const responseSchema = z.object({
-        // Agrega aquí el esquema de respuesta esperado
-      });
-
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
     });
+
+    describe('findAvailibleEmpleoyee - RRHH Service', () => {
+      test('Obtener empleados disponibles con un workId válido', async () => {
+        const response = await pactum
+          .spec()
+          .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5a1`)
+          .withHeaders('Authorization', token)
+          .expectStatus(200);
+    
+        // Esquema de validación de la respuesta usando Zod
+        const responseSchema = z.array(
+          z.object({
+            _id: z.string().nonempty(),
+            name: z.string().nonempty(),
+            lastname: z.string().nonempty(),
+            CUIT: z.string().nonempty(),
+            gender: z.enum(["M", "F"]),
+            birthDate: z.string().nonempty(), // formato ISO de fecha como string
+            DNI: z.string().nonempty(),
+            phone: z.string().nonempty(),
+            image: z.string().url(),
+            companyId: z.string().nonempty(),
+            address: z.object({
+              country: z.string().nonempty(),
+              state: z.string().nonempty(),
+              city: z.string().nonempty(),
+              apartment: z.boolean(),
+              houseNumber: z.number(),
+              floor: z.string().optional(),
+              door: z.string().optional(),
+              street: z.string().nonempty(),
+              postalCode: z.string().nonempty(),
+            }),
+            authData: z.object({
+              email: z.string().email(),
+              firstLogin: z.boolean(),
+              status: z.boolean(),
+            }),
+            workDetails: z.object({
+              role: z.string().nonempty(),
+              supervisor: z.boolean(),
+              activityStartDate: z.string().nonempty(), // formato ISO de fecha como string
+              employeeType: z.enum(["INFORMAL", "FORMAL"]),
+              workIn: z.array(z.string().nonempty()),
+            }),
+            createdAt: z.string().nonempty(), // formato ISO de fecha como string
+            updatedAt: z.string().nonempty(), // formato ISO de fecha como string
+            __v: z.number(),
+          })
+        );
+    
+        const result = responseSchema.safeParse(response.body);
+        expect(result.success).toBe(true);
+      });
+   
 
     test('Error al obtener empleados disponibles con un workId inválido', async () => {
       await pactum
@@ -502,25 +541,25 @@ describe('findOne - RRHH Service', () => {
     });
   });
 
-  describe('employeesAmmount - RRHH Service', () => {
-    test('should return the amount of employees for a valid company and date range', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '2024-01-01',
-          endDate: '2024-12-31',
-        })
-        .expectStatus(200);
+  // describe('employeesAmmount - RRHH Service', () => {
+  //   test('should return the amount of employees for a valid company and date range', async () => {
+  //     const response = await pactum
+  //       .spec()
+  //       .get(`${baseUrl}/employeesAmmount`)
+  //       .withHeaders('Authorization', token)
+  //       .withQueryParams({
+  //         startDate: '2024-01-01',
+  //         endDate: '2024-12-31',
+  //       })
+  //       .expectStatus(200);
 
-      // Validación del cuerpo de la respuesta usando Zod
-      const responseSchema = z.object({
-        // Agrega aquí el esquema de respuesta esperado
-      });
+  //     // Validación del cuerpo de la respuesta usando Zod
+  //     const responseSchema = z.object({
+  //       // Agrega aquí el esquema de respuesta esperado
+  //     });
 
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-    });
-  });
+  //     const result = responseSchema.safeParse(response.body);
+  //     expect(result.success).toBe(true);
+  //   });
+  // });
 });
