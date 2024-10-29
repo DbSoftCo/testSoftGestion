@@ -449,13 +449,14 @@ describe('findOne - RRHH Service', () => {
   // 5. Búsqueda de usuario inexistente (error 404)
   test('Buscar un usuario que no existe', async () => {
     const id = '60b8d8f4c3f8c12b8c0e1f5a'; // Asegúrate de que este ID no exista en la base de datos
-    const expectedMessage = `User  with id: "${id}" was not found!`;
+    const expectedMessage =  `User with id: \"${id}\" was not found!`;
 
     await pactum
       .spec()
       .get(`${baseUrl}/findOne/${id}`)
       .withHeaders('Authorization', token)
       .expectStatus(404)
+      .withQueryParams('identificator', 'id')
       .expectBodyContains({
         message: expectedMessage,
         error: 'Not Found',
@@ -546,7 +547,7 @@ describe('findOne - RRHH Service', () => {
         .withHeaders('Authorization', token)
         .withQueryParams({
           startDate: '2015-01-01',
-          endDate: '2024-12-31',
+          endDate: '2024-09-31',
         })
         .expectStatus(200);
 
@@ -592,7 +593,7 @@ describe('findOne - RRHH Service', () => {
         .withHeaders('Authorization', token)
         .withQueryParams({
           startDate: '2015-01-01',
-          endDate: '2024-12-31',
+          endDate: '2024-09-31',
         })
         .expectStatus(200);
 
