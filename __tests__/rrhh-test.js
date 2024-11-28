@@ -53,10 +53,10 @@ describe('TESTING CREATEUSER', () => {
       .withJson({
         name: 'FAKE',
         lastname: 'TEST',
-        CUIT: cuit,
+        cuit: cuit,
         gender: 'M',
         birthDate: '2001-09-14T00:00:00.000Z',
-        DNI: dni,
+        dni: dni,
         phone: phone,
         image: 'https://example.com/image1.png',
         companyId: '659c7626ecbb78591228bd01',
@@ -90,10 +90,10 @@ describe('TESTING CREATEUSER', () => {
       _id: z.string(),
       name: z.string(),
       lastname: z.string(),
-      CUIT: z.string(),
+      cuit: z.string(),
       gender: z.string(),
       birthDate: z.string(),
-      DNI: z.string(),
+      dni: z.string(),
       phone: z.string(),
       image: z.string(),
       companyId: z.string(),
@@ -135,10 +135,10 @@ describe('TESTING CREATEUSER', () => {
       .withJson({
         name: 'Lucía',
         lastname: 'Martínez ',
-        CUIT: '20565646502',
+        cuit: '20565646502',
         gender: 'F',
         birthDate: '1992-07-15T00:00:00.000Z',
-        DNI: '31011223',
+        dni: '31011223',
         phone: '+541122334466',
         image: 'https://example.com/image2.png',
         companyId: '659c7626ecbb78591228bd02',
@@ -174,10 +174,10 @@ describe('TESTING CREATEUSER', () => {
       .withJson({
         name: '', // Nombre vacío
         lastname: 'Rodríguez',
-        CUIT: '20565646503',
+        cuit: '20565646503',
         gender: 'M',
         birthDate: '1990-03-20T00:00:00.000Z',
-        DNI: '32011223',
+        dni: '32011223',
         phone: '+541122334477',
         image: 'https://example.com/image3.png',
         companyId: '659c7626ecbb78591228bd03',
@@ -208,7 +208,7 @@ describe('TESTING CREATEUSER', () => {
       .expectBodyContains('name must be longer than or equal to 2 characters');
   });
 
-  test('Error en Creación de usuario con CUIT inválido', async () => {
+  test('Error en Creación de usuario con cuit inválido', async () => {
     await pactum
       .spec()
       .post('http://localhost:3000/rrhh')
@@ -216,10 +216,10 @@ describe('TESTING CREATEUSER', () => {
       .withJson({
         name: 'Jorge',
         lastname: 'Pérez',
-        CUIT: '123', // CUIT inválido
+        cuit: '123', // cuit inválido
         gender: 'M',
         birthDate: '1988-04-25T00:00:00.000Z',
-        DNI: '33011223',
+        dni: '33011223',
         phone: '+541122334488',
         image: 'https://example.com/image4.png',
         companyId: '659c7626ecbb78591228bd04',
@@ -247,7 +247,7 @@ describe('TESTING CREATEUSER', () => {
         },
       })
       .expectStatus(400) // Error 400 (Bad Request)
-      .expectBodyContains('CUIT must be longer than or equal to 8 characters');
+      .expectBodyContains('cuit must be longer than or equal to 8 characters');
   });
 
   test('Error en Creación de usuario con fecha de nacimiento inválida', async () => {
@@ -259,8 +259,8 @@ describe('TESTING CREATEUSER', () => {
         name: 'Ana',
         lastname: 'López',
         birthDate: '1990-13-01', // Fecha inválida
-        CUIT: '20565646504',
-        DNI: '34011223',
+        cuit: '20565646504',
+        dni: '34011223',
         phone: '+541122334499',
         image: 'https://example.com/image5.png',
         companyId: '659c7626ecbb78591228bd05',
@@ -292,17 +292,17 @@ describe('TESTING CREATEUSER', () => {
   });
 
   test('Error en Creación de usuario con companyId inválido', async () => {
-    await pactum
+    const response = await pactum
       .spec()
       .post('http://localhost:3000/rrhh')
       .withHeaders('Authorization', token)
       .withJson({
         name: 'Pedro',
         lastname: 'Ramírez',
-        CUIT: '20565646505',
+        cuit: '20565646505',
         gender: 'M',
         birthDate: '1992-12-01T00:00:00.000Z',
-        DNI: '35011223',
+        dni: '35011223',
         phone: '+541122334411',
         image: 'https://example.com/image6.png',
         companyId: '123', // companyId inválido
@@ -330,7 +330,7 @@ describe('TESTING CREATEUSER', () => {
         },
       })
       .expectStatus(400)
-      .expectBodyContains('companyId must be a MongoDB ObjectId instance');
+      .expectBodyContains('Invalid ObjectId: 123');
   });
 });
 
@@ -388,10 +388,10 @@ describe('findOne - RRHH Service', () => {
       _id: z.string(),
       name: z.string(),
       lastname: z.string(),
-      CUIT: z.string(),
+      cuit: z.string(),
       gender: z.string(),
       birthDate: z.string(),
-      DNI: z.string(),
+      dni: z.string(),
       phone: z.string(),
       image: z.string(),
       companyId: z.string(),
@@ -449,7 +449,7 @@ describe('findOne - RRHH Service', () => {
   // 5. Búsqueda de usuario inexistente (error 404)
   test('Buscar un usuario que no existe', async () => {
     const id = '60b8d8f4c3f8c12b8c0e1f5a'; // Asegúrate de que este ID no exista en la base de datos
-    const expectedMessage =  `User with id: \"${id}\" was not found!`;
+    const expectedMessage = `User with id: \"${id}\" was not found!`;
 
     await pactum
       .spec()
@@ -463,205 +463,207 @@ describe('findOne - RRHH Service', () => {
         statusCode: 404,
       });
   });
-  describe('findAvailibleEmpleoyee - RRHH Service', () => {
-    test('Obtener empleados disponibles con un workId válido', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5a1`)
-        .withHeaders('Authorization', token)
-        .expectStatus(200);
+});
 
-      // Esquema de validación de la respuesta usando Zod
-      const responseSchema = z.array(
-        z.object({
-          _id: z.string().nonempty(),
-          name: z.string().nonempty(),
-          lastname: z.string().nonempty(),
-          CUIT: z.string().nonempty(),
-          gender: z.enum(['M', 'F']),
-          birthDate: z.string().nonempty(), // formato ISO de fecha como string
-          DNI: z.string().nonempty(),
-          phone: z.string().nonempty(),
-          image: z.string().url(),
-          companyId: z.string().nonempty(),
-          address: z.object({
-            country: z.string().nonempty(),
-            state: z.string().nonempty(),
-            city: z.string().nonempty(),
-            apartment: z.boolean(),
-            houseNumber: z.number(),
-            floor: z.string().optional(),
-            door: z.string().optional(),
-            street: z.string().nonempty(),
-            postalCode: z.string().nonempty(),
-          }),
-          authData: z.object({
-            email: z.string().email(),
-            firstLogin: z.boolean(),
-            status: z.boolean(),
-          }),
-          workDetails: z.object({
-            role: z.string().nonempty(),
-            supervisor: z.boolean(),
-            activityStartDate: z.string().nonempty(), // formato ISO de fecha como string
-            employeeType: z.enum(['INFORMAL', 'FORMAL']),
-            workIn: z.array(z.string().nonempty()),
-          }),
-          createdAt: z.string().nonempty(), // formato ISO de fecha como string
-          updatedAt: z.string().nonempty(), // formato ISO de fecha como string
-          __v: z.number(),
-        })
-      );
+describe('findAvailibleEmpleoyee - RRHH Service', () => {
+  test('Obtener empleados disponibles con un workId válido', async () => {
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5a1`)
+      .withHeaders('Authorization', token)
+      .expectStatus(200);
 
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-    });
+    // Esquema de validación de la respuesta usando Zod (esperando un array)
+    const responseSchema = z.array(
+      z.object({
+        _id: z.string(),
+        name: z.string(),
+        lastname: z.string(),
+        gender: z.string(),
+        birthDate: z.string(),
+        dni: z.string(),
+        phone: z.string(),
+        image: z.string(),
+        companyId: z.string(),
+        address: z.object({
+          country: z.string(),
+          state: z.string(),
+          city: z.string(),
+          apartment: z.boolean(),
+          houseNumber: z.number(),
+          floor: z.string(),
+          door: z.string(),
+          street: z.string(),
+          postalCode: z.string(),
+        }),
+        authData: z.object({
+          email: z.string().email(),
+          firstLogin: z.boolean(),
+          status: z.boolean(),
+        }),
+        workDetails: z.object({
+          role: z.string(),
+          supervisor: z.boolean(),
+          activityStartDate: z.string(),
+          employeeType: z.string(),
+          workIn: z.array(z.string()), // Ajusta esto si "workIn" tiene un tipo diferente
+        }),
+        createdAt: z.string(),
+        updatedAt: z.string(),
+        __v: z.number(),
+        cuit: z.string(),
+      })
+    );
 
-    test('Error al obtener empleados disponibles con un workId inválido', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/availibeEmpleoyees/4845646561`)
-        .withHeaders('Authorization', token)
-        .expectStatus(400)
-        .expectBodyContains({
-          message: 'Invalid ObjectId',
-          error: 'Bad Request',
-          statusCode: 400,
-        });
-    });
+    const result = responseSchema.safeParse(response.body);
 
-    test('Acceso denegado a obtener empleados disponibles sin token', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5e9`)
-        .expectStatus(401)
-        .expectBodyContains('Unauthorized');
-    });
+    expect(result.success).toBe(true);
   });
 
-  describe('employeesStatusChanges - RRHH Service', () => {
-    test('should return employee status changes for valid company and date range', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/employeesStatusChanges`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '2015-01-01',
-          endDate: '2024-09-31',
-        })
-        .expectStatus(200);
-
-      const responseSchema = z.array(
-        z.object({
-          // Define aquí el esquema de respuesta esperado
-          _id: z.string(),
-          name: z.string(),
-          statusChangeDate: z.string(),
-          // Otros campos según tu modelo
-        })
-      );
-
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-    });
-
-    test('should return 401 for unauthorized access', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/employeesStatusChanges`)
-        .expectStatus(401);
-    });
-
-    test('should return 400 for invalid date range', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/employeesStatusChanges`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: 'invalid-date',
-          endDate: 'invalid-date',
-        })
-        .expectStatus(400);
-    });
+  test('Error al obtener empleados disponibles con un workId inválido', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/availibeEmpleoyees/4845646561`)
+      .withHeaders('Authorization', token)
+      .expectStatus(400)
+      .expectBodyContains({
+        message: 'Invalid ObjectId',
+        error: 'Bad Request',
+        statusCode: 400,
+      });
   });
 
-  describe('employeesAmmount - RRHH Service', () => {
-    test('should return the amount of employees for a valid company and date range', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '2015-01-01',
-          endDate: '2024-09-31',
-        })
-        .expectStatus(200);
+  test('Acceso denegado a obtener empleados disponibles sin token', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/availibeEmpleoyees/646fb77f089f94ee9945a5e9`)
+      .expectStatus(401)
+      .expectBodyContains('Unauthorized');
+  });
+});
 
-      const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Suponiendo que devuelve un array con 3 números
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-    });
+describe('employeesStatusChanges - RRHH Service', () => {
+  test('should return employee status changes for valid company and date range', async () => {
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/employeesStatusChanges`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: '2015-01-01',
+        endDate: '2024-09-31',
+      })
+      .expectStatus(200);
 
-    test('should return 401 for unauthorized access', async () => {
-      await pactum.spec().get(`${baseUrl}/employeesAmmount`).expectStatus(401);
-    });
+    const responseSchema = z.array(
+      z.object({
+        // Define aquí el esquema de respuesta esperado
+        _id: z.string(),
+        name: z.string(),
+        statusChangeDate: z.string(),
+        // Otros campos según tu modelo
+      })
+    );
 
-    test('should return 400 for invalid date range', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: 'invalid-date',
-          endDate: 'invalid-date',
-        })
-        .expectStatus(400);
-    });
+    const result = responseSchema.safeParse(response.body);
+    expect(result.success).toBe(true);
+  });
 
-    test('should return 400 for future date range', async () => {
-      await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '3000-01-01',
-          endDate: '3000-12-31',
-        })
-        .expectStatus(400);
-    });
+  test('should return 401 for unauthorized access', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/employeesStatusChanges`)
+      .expectStatus(401);
+  });
 
-    test('should return correct amount of employees with no records', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '2019-01-01',
-          endDate: '2019-01-02',
-        })
-        .expectStatus(200);
+  test('should return 400 for invalid date range', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/employeesStatusChanges`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: 'invalid-date',
+        endDate: 'invalid-date',
+      })
+      .expectStatus(400);
+  });
+});
 
-      const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Debería devolver [0, 0, 0]
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-      expect(response.body).toEqual([0, 0, 0]); // Asegúrate de que el resultado sea [0, 0, 0]
-    });
+describe('employeesAmmount - RRHH Service', () => {
+  test('should return the amount of employees for a valid company and date range', async () => {
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/employeesAmmount`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: '2015-01-01',
+        endDate: '2024-09-31',
+      })
+      .expectStatus(200);
 
-    test('should return correct amount of employees with out of range dates', async () => {
-      const response = await pactum
-        .spec()
-        .get(`${baseUrl}/employeesAmmount`)
-        .withHeaders('Authorization', token)
-        .withQueryParams({
-          startDate: '2020-01-01',
-          endDate: '2020-01-31',
-        })
-        .expectStatus(200);
+    const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Suponiendo que devuelve un array con 3 números
+    const result = responseSchema.safeParse(response.body);
+    expect(result.success).toBe(true);
+  });
 
-      const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Debería devolver un resultado acorde
-      const result = responseSchema.safeParse(response.body);
-      expect(result.success).toBe(true);
-      // Asegúrate de que el resultado sea correcto según tus datos de prueba
-    });
+  test('should return 401 for unauthorized access', async () => {
+    await pactum.spec().get(`${baseUrl}/employeesAmmount`).expectStatus(401);
+  });
+
+  test('should return 400 for invalid date range', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/employeesAmmount`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: 'invalid-date',
+        endDate: 'invalid-date',
+      })
+      .expectStatus(400);
+  });
+
+  test('should return 400 for future date range', async () => {
+    await pactum
+      .spec()
+      .get(`${baseUrl}/employeesAmmount`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: '3000-01-01',
+        endDate: '3000-12-31',
+      })
+      .expectStatus(400);
+  });
+
+  test('should return correct amount of employees with no records', async () => {
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/employeesAmmount`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: '2019-01-01',
+        endDate: '2019-01-02',
+      })
+      .expectStatus(200);
+
+    const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Debería devolver [0, 0, 0]
+    const result = responseSchema.safeParse(response.body);
+    expect(result.success).toBe(true);
+    expect(response.body).toEqual([0, 0, 0]); // Asegúrate de que el resultado sea [0, 0, 0]
+  });
+
+  test('should return correct amount of employees with out of range dates', async () => {
+    const response = await pactum
+      .spec()
+      .get(`${baseUrl}/employeesAmmount`)
+      .withHeaders('Authorization', token)
+      .withQueryParams({
+        startDate: '2020-01-01',
+        endDate: '2020-01-31',
+      })
+      .expectStatus(200);
+
+    const responseSchema = z.tuple([z.number(), z.number(), z.number()]); // Debería devolver un resultado acorde
+    const result = responseSchema.safeParse(response.body);
+    expect(result.success).toBe(true);
+    // Asegúrate de que el resultado sea correcto según tus datos de prueba
   });
 });
