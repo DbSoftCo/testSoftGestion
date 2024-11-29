@@ -4,7 +4,8 @@
 	"description": "Sample code to demonstrate API testing in JavaScript using Jest and PactumJS",
 	"main": "index.js",
 	"scripts": {
-		"test": "jest"
+		"test": "jest",
+		"test:integration": "jest --config=jest.integration.config.js"
 	},
 	"repository": {
 		"type": "git",
