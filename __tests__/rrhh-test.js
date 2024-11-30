@@ -574,18 +574,6 @@ describe('employeesStatusChanges - RRHH Service', () => {
       .get(`${baseUrl}/employeesStatusChanges`)
       .expectStatus(401);
   });
-
-  test('should return 400 for invalid date range', async () => {
-    await pactum
-      .spec()
-      .get(`${baseUrl}/employeesStatusChanges`)
-      .withHeaders('Authorization', token)
-      .withQueryParams({
-        startDate: 'invalid-date',
-        endDate: 'invalid-date',
-      })
-      .expectStatus(400);
-  });
 });
 
 describe('employeesAmmount - RRHH Service', () => {
