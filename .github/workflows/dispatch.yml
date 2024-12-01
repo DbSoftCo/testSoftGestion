@@ -13,8 +13,9 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            github.rest.repos.createDispatchEvent({
-              owner: 'DbSoftCo', # Cambia esto por el nombre de la organización
-              repo: 'softgestion-backend', # Cambia esto por el nombre de tu repositorio de backend
-              event_type: 'run-integration-tests' # Nombre del evento
-            })
+            const result = await github.rest.repos.createDispatchEvent({
+              owner: 'DbSoftCo',
+              repo: 'softgestion-backend',
+              event_type: 'run-integration-tests' // Nombre del evento
+            });
+            console.log(result);
